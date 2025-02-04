@@ -5,11 +5,12 @@ using Avalonia.Ide.CompletionEngine.AssemblyMetadata;
 using Avalonia.Ide.CompletionEngine.DnlibMetadataProvider;
 using AvaloniaLanguageServer.Services;
 using AvaloniaLanguageServer.Utilities;
+using Microsoft.Extensions.Logging;
 
 
 namespace AvaloniaLanguageServer.Models;
 
-public class Workspace
+public class Workspace(ILogger<Workspace> _logger)
 {
     public ProjectInfo? ProjectInfo { get; private set; }
     public BufferService BufferService { get; } = new();
@@ -29,14 +30,13 @@ public class Workspace
 
     Metadata? BuildCompletionMetadata(DocumentUri uri)
     {
+        _logger.LogError(ProjectInfo?.ProjectDirectory);
         var slnFile = Path.GetFileName(ProjectInfo?.ProjectDirectory);
-
         if (slnFile == null)
             return null;
-
-
+        //why is this called slnFile??
         var slnFilePath = Path.Combine(Path.GetTempPath(), $"{slnFile}.json");
-
+        _logger.LogError($"Searching for ${slnFilePath}");
         if (!File.Exists(slnFilePath))
             return null;
 
