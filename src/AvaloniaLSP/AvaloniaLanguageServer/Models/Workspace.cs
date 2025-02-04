@@ -29,7 +29,7 @@ public class Workspace
 
     Metadata? BuildCompletionMetadata(DocumentUri uri)
     {
-        var slnFile = SolutionName(uri) ?? Path.GetFileNameWithoutExtension(ProjectInfo?.ProjectDirectory);
+        var slnFile = Path.GetFileName(ProjectInfo?.ProjectDirectory);
 
         if (slnFile == null)
             return null;

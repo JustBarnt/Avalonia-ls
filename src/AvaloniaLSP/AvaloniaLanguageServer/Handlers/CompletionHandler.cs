@@ -40,7 +40,7 @@ public class CompletionHandler : CompletionHandlerBase
                     Label = "Build the project",
                     Documentation = new StringOrMarkupContent("Build the project to enable code completion"),
                     Kind = CompletionItemKind.Event,
-                    Command = Command.Create("avalonia.createPreviewerAssets", new {triggerCodeComplete = true}),
+                    // Command = Command.Create("avalonia.createPreviewerAssets", new {triggerCodeComplete = true}),
                     InsertText = " "
                 }
             });
