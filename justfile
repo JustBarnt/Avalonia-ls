@@ -10,9 +10,9 @@ build:
 
 
 install:
-    # just build
-    # mkdir -p ~/.local/share/avalonia-ls
-    # cp bin/* ~/.local/share/avalonia-ls -r
+    just build
+    mkdir -p ~/.local/share/avalonia-ls
+    cp bin/* ~/.local/share/avalonia-ls -r
     echo -e "#!/bin/bash\n exec ~/.local/share/avalonia-ls/xaml-styler/xstyler \"@\"" >> ~/.local/bin/xaml-styler
     chmod +x ~/.local/bin/xaml-styler
     
