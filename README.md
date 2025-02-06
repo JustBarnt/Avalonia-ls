@@ -8,6 +8,12 @@ git clone https://www.github.com/eugenenoble2005/avalonia-ls.git --recursive
 cd avalonia-ls
 just install
 ```
+
+You can also install from the AUR
+```
+yay -S avalonia-ls-git
+```
+
 After installing, you need only configure your editor of choice:
 # Helix
 ```
