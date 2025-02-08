@@ -8,6 +8,9 @@ build:
     mkdir -p bin/xaml-styler
     dotnet build src/XamlStyler/src/XamlStyler.Console/XamlStyler.Console.csproj --output bin/xaml-styler
 
+    mkdir -p bin/avalonia-preview
+    dotnet build src/AvaloniaPreview --output bin/avalonia-preview
+
 
 install:
     just build
@@ -22,11 +25,14 @@ install:
     echo -e "#!/bin/bash\n exec ~/.local/share/avalonia-ls/solution-parser/SolutionParser \"\$@\"" > ~/.local/bin/avalonia-solution-parser
     chmod +x ~/.local/bin/avalonia-solution-parser
 
+    echo -e "#/!bin/bash\n exec ~/.local/share/avalonia-ls/avalonia-preview/AvaloniaPreview \"\$@\"" > ~/.local/bin/avalonia-preview
+    chmod +x ~/.local/bin/avalonia-preview
+
     @echo "INSTALLATION COMPLETE!"
 
     
 uninstall:
     rm -rf ~/.local/share/avalonia-ls
-    rm ~/.local/bin/xaml-styler ~/.local/bin/avalonia-ls ~/.local/bin/avalonia-solution-parser
+    rm ~/.local/bin/xaml-styler ~/.local/bin/avalonia-ls ~/.local/bin/avalonia-solution-parser ~/.local/bin/avalonia-preview
     echo "UNINSTALLATION COMPLETE"
     
