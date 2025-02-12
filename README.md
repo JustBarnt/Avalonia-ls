@@ -57,3 +57,9 @@ avalonia-solution-parser .
 dotnet build
 ```
 You need to run avalonia-solution-parser to generate metadata just once. Completions should work afterwards
+
+# PREVIEWER
+You can run a xaml previewer in a browser tab for any xaml file in your project:
+```
+avalonia-previewer --file path/to/axaml/file
+```
