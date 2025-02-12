@@ -1,12 +1,13 @@
-﻿using System.Text.Json;
+﻿namespace Main;
+using System.Text.Json;
 using System.Diagnostics;
-class Args
+public class Args
 {
     public string? file;
     public string port = "8080";
-    public string? target = "browser";
+    public string target = "browser";
 }
-class PreviewerParams
+public class PreviewerParams
 {
     public required string depsFilePath;
     public required string runtimeConfigPath;
@@ -33,6 +34,16 @@ internal class Program
                 case "--port":
                     _args.port = args[index + 1];
                     break;
+                case "--target":
+                    if (args[index + 1] == "browser" || args[index + 1] == "terminal")
+                    {
+                        _args.target = args[index + 1];
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Unknown Target {args[index + 1]}. Using 'browser' target");
+                    }
+                    break;
                 default: break;
             }
             index++;
@@ -42,14 +53,21 @@ internal class Program
             Die("Input AXAML file not given");
         }
         SetMetadata();
-        StartPrevierServer();
+        if (_args.target == "browser")
+        {
+            StartPrevierServer();
+        }
+        else{
+            if(_params is null) return;
+            new BsonProtocol(_args,_params).StartPreviewerProcess();
+        }
     }
     private static void SetMetadata()
     {
         if (_args.file is null) return;
         if (!File.Exists(_args.file)) Die("Input XAML file does not exist");
-        if(Path.GetExtension(_args.file) != ".axaml") Die("Provided file is not a AXAML file");
-    
+        if (Path.GetExtension(_args.file) != ".axaml") Die("Provided file is not a AXAML file");
+
         string? full_path = Path.GetDirectoryName(Path.GetFullPath(_args.file));
         if (full_path is null) return;
 
@@ -94,7 +112,7 @@ internal class Program
     private static void StartPrevierServer()
     {
         if (_params is null) return;
-        string args = $"exec --runtimeconfig {_params.runtimeConfigPath} --depsfile {_params.depsFilePath} {_params.hostappPath} --transport file://{_params.targetFile} --html-url http://127.0.0.1:{_params.targetPort} {_params.targetPath}";
+        string args = $"exec --runtimeconfig {_params.runtimeConfigPath} --depsfile {_params.depsFilePath} {_params.hostappPath} --transport file://{_params.targetFile} --html-url http://127.0.0.1:{_params.targetPort} {_params.targetPath}"; Console.WriteLine(args);
         var process_info = new ProcessStartInfo()
         {
             FileName = "dotnet",

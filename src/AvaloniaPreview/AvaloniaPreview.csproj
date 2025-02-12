@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../AvaloniaLSP/AvaloniaLanguageServer/AvaloniaLanguageServer.csproj"/>
+    <ProjectReference Include="../AvaloniaLSP/AvaloniaLanguageServer/AvaloniaLanguageServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Remote.Protocol" Version="11.2.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
   </ItemGroup>
 </Project>
