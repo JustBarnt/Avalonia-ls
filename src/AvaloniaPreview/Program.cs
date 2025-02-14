@@ -136,7 +136,7 @@ internal class Program
         process.BeginErrorReadLine();
         process.WaitForExit();
     }
-    private static void Die(string message)
+    public static void Die(string message)
     {
         Console.WriteLine(message);
         Environment.Exit(1);

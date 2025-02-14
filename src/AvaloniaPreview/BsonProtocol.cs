@@ -4,7 +4,6 @@ using System.IO;
 using System.Net.Sockets;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System.Diagnostics;
 using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
@@ -19,7 +18,8 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
     private bool IsReady => IsRunning && _connection != null;
     private bool PreviewIsBeingDisplayed = false;
     private CancellationTokenSource _debounceToken = new();
-    private FileSystemWatcher _watcher;
+    private TerminalGui? _terminalGui;
+    private FileSystemWatcher? _watcher;
     public void StartPreviewerProcess()
     {
         var port = FreeTcpPort();
@@ -34,7 +34,7 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
             }
         );
         if (_params is null) return;
-        string args = $"exec --runtimeconfig {_params.runtimeConfigPath} --depsfile {_params.depsFilePath} {_params.hostappPath} --transport tcp-bson://127.0.0.1:{port} {_params.targetPath}"; 
+        string args = $"exec --runtimeconfig {_params.runtimeConfigPath} --depsfile {_params.depsFilePath} {_params.hostappPath} --transport tcp-bson://127.0.0.1:{port} {_params.targetPath}";
         var process_info = new ProcessStartInfo()
         {
             FileName = "dotnet",
@@ -73,7 +73,9 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
     private async Task PreviewFile()
     {
         Console.Write("\x1b[2J");
-        Console.Write("\x1b[H");
+        // Console.Write("\x1b[H");
+        // Console.Out.Flush();
+        Console.SetCursorPosition(0, 0);
         if (_args.file is null) return;
         Console.WriteLine("Preparing connection...");
         //we need to make sure the connection is alive before proceeding, pause until it is ready. Not an ideal solution.
@@ -100,7 +102,8 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
             {
                 case UpdateXamlResultMessage update:
                     var ex = update.Exception;
-                    if(ex != null ){
+                    if (ex != null)
+                    {
                         System.Console.WriteLine(ex.Message);
                     }
                     break;
@@ -109,13 +112,39 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
                     {
                         using (var ms = new MemoryStream())
                         {
+                            if (_terminalGui is null)
+                            {
+                                _terminalGui = new();
+                                //i dont have a fucking clue what i am doing here
+                                _ = Task.Run(() =>
+                                {
+                                    _terminalGui.Start();
+                                });
+                                //pause the thread to make sure terminalgui has rendered before we display the useful stuff over it
+                                Thread.Sleep(400);
+                            }
                             image.SaveAsPng(ms);
                             var pngData = ms.ToArray();
                             var base64data = Convert.ToBase64String(pngData);
-                            Console.Write("\x1b[H");
-                            PreviewIsBeingDisplayed = true;
-                            Console.Write($"\x1b_Gf=100,a=T,z=0;{base64data}\x1b\\");
+                            // Console.Write("\x1b[H");
+                            Console.SetCursorPosition(0, 0);
                             frameCount++;
+                            Console.Write($"\x1b_Gf=100,a=T,z=0;{base64data}\x1b\\");
+                            Winsize winsize = new();
+                            unsafe
+                            {
+                                int result = IOCTL_PROVIDER.ioctl(0, 0x5413, &winsize);
+                                if (result != 0)
+                                {
+                                    Program.Die("Something went terribly wrong and it's probably the developer's fault");
+                                }
+                            }
+                            int characterCellWidth = (int)Math.Ceiling((double)winsize.xpixel / winsize.col);
+                            int characterCellHeight = (int)Math.Ceiling((double)winsize.ypixel / winsize.row);
+                            int imageWidth = (int)Math.Ceiling((double)image.Width / characterCellWidth);
+                            int imageHeight = (int)Math.Ceiling((double)image.Height / characterCellHeight);
+                            Console.Write("\x1b[14t");
+                            Console.WriteLine(imageHeight);
                         }
                     }
                     // request more frames
@@ -184,8 +213,8 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
         if (full_path is null) return;
         var directory_name = Path.GetDirectoryName(full_path);
         if (directory_name is null) return;
-         _watcher = new FileSystemWatcher(directory_name);
-        _watcher.NotifyFilter = NotifyFilters.LastWrite ;
+        _watcher = new FileSystemWatcher(directory_name);
+        _watcher.NotifyFilter = NotifyFilters.LastWrite;
         _watcher.Changed += async (object sender, FileSystemEventArgs e) =>
         {
             if (e.FullPath == Path.GetFullPath(_args.file))
