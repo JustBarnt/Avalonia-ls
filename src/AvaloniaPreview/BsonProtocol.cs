@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Avalonia.Remote.Protocol;
 using Avalonia.Remote.Protocol.Designer;
 using Avalonia.Remote.Protocol.Viewport;
+using Avalonia.Remote.Protocol.Input;
 public class BsonProtocol(Args _args, PreviewerParams _params)
 {
     private IDisposable? _listener;
@@ -19,7 +20,9 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
     private bool PreviewIsBeingDisplayed = false;
     private CancellationTokenSource _debounceToken = new();
     private TerminalGui? _terminalGui;
+    private Winsize winsize;
     private FileSystemWatcher? _watcher;
+    public ImageSize? ImageSize;
     public void StartPreviewerProcess()
     {
         var port = FreeTcpPort();
@@ -114,7 +117,7 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
                         {
                             if (_terminalGui is null)
                             {
-                                _terminalGui = new();
+                                _terminalGui = new(this);
                                 //i dont have a fucking clue what i am doing here
                                 _ = Task.Run(() =>
                                 {
@@ -130,21 +133,29 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
                             Console.SetCursorPosition(0, 0);
                             frameCount++;
                             Console.Write($"\x1b_Gf=100,a=T,z=0;{base64data}\x1b\\");
-                            Winsize winsize = new();
+                            winsize = new();
                             unsafe
                             {
-                                int result = IOCTL_PROVIDER.ioctl(0, 0x5413, &winsize);
-                                if (result != 0)
+                                fixed (Winsize* ws_ptr = &winsize)
                                 {
-                                    Program.Die("Something went terribly wrong and it's probably the developer's fault");
+                                    int result = IOCTL_PROVIDER.ioctl(0, 0x5413, ws_ptr);
+                                    if (result != 0)
+                                    {
+                                        Program.Die("Something went terribly wrong and it's probably the developer's fault");
+                                    }
                                 }
                             }
+                            //calculate image size in coordinates from (0,0)
                             int characterCellWidth = (int)Math.Ceiling((double)winsize.xpixel / winsize.col);
                             int characterCellHeight = (int)Math.Ceiling((double)winsize.ypixel / winsize.row);
                             int imageWidth = (int)Math.Ceiling((double)image.Width / characterCellWidth);
                             int imageHeight = (int)Math.Ceiling((double)image.Height / characterCellHeight);
                             Console.Write("\x1b[14t");
-                            Console.WriteLine(imageHeight);
+                            ImageSize = new()
+                            {
+                                height = imageHeight,
+                                width = imageWidth,
+                            };
                         }
                     }
                     // request more frames
@@ -231,4 +242,82 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
         };
         _watcher.EnableRaisingEvents = true;
     }
+    public async Task MouseMove(int X, int Y)
+    {
+        (int x_loc, int y_loc) = TruePixelSize(X, Y);
+        await SendAsync(new PointerMovedEventMessage
+        {
+            X = x_loc / 1,
+            Y = y_loc / 1,
+            Modifiers = null //todo
+        });
+    }
+    public async Task MouseDown(int X, int Y, MouseButton button)
+    {
+        (int x_loc, int y_loc) = TruePixelSize(X, Y);
+        await SendAsync(new PointerPressedEventMessage
+        {
+            X = x_loc / 1,
+            Y = y_loc / 1,
+            Button = button,
+            Modifiers = null //todo
+        });
+    }
+    public async Task MouseUp(int X, int Y, MouseButton button)
+    {
+        (int x_loc, int y_loc) = TruePixelSize(X, Y);
+        await SendAsync(new PointerReleasedEventMessage
+        {
+            X = x_loc / 1,
+            Y = y_loc / 1,
+            Button = button,
+            Modifiers = null //todo
+        });
+    }
+    public async Task MouseScroll(ScrollDirection direction)
+    {
+        ScrollEventMessage message = new();
+        //delta should probably scale with the intensity of the scroll
+        switch(direction ){
+            case ScrollDirection.Down:
+                message = new(){
+                    DeltaX = 0,
+                    DeltaY = 10
+                };
+                break;
+            case ScrollDirection.Up:
+                message = new(){
+                    DeltaX = 0,
+                    DeltaY = -10,
+                };
+                break;
+            case ScrollDirection.Left:
+                message = new(){
+                    DeltaX = 10,
+                    DeltaY = 0
+                };
+                break;
+            case ScrollDirection.Right:
+                message = new(){
+                    DeltaX = -10,
+                    DeltaY = 0
+                };
+                break;
+        }
+        await SendAsync(message);
+    }
+    public (int x_loc, int y_loc) TruePixelSize(int X, int Y)
+    {
+        //Convert X AND Y coords back to image pixel width and height
+        int characterCellWidth = (int)Math.Ceiling((double)winsize.xpixel / winsize.col);
+        int characterCellHeight = (int)Math.Ceiling((double)winsize.ypixel / winsize.row);
+        int x_loc = X * characterCellWidth;
+        int y_loc = Y * characterCellHeight;
+        return (x_loc, y_loc);
+    }
+}
+public class ImageSize
+{
+    public int? height;
+    public int? width;
 }
