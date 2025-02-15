@@ -61,9 +61,9 @@ You need to run avalonia-solution-parser to generate metadata just once. Complet
 # PREVIEWER
 You can run a xaml previewer in a browser tab for any xaml file in your project:
 ```
-avalonia-previewer --file path/to/axaml/file
+avalonia-preview --file path/to/axaml/file
 ```
 On supported terminal emulators like kitty, ghostty or wezterm, you can run the previewer directly inside the terminal. This is experimental and does not yet capture input like mouse and keyboard.
 ```
-avalonia-previewer --file path/to/axaml/file --target terminal
+avalonia-preview --file path/to/axaml/file --target terminal
 ```
