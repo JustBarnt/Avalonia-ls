@@ -55,7 +55,6 @@ public class TerminalGui(BsonProtocol _protocol)
 
         Application.Top.KeyPress += (View.KeyEventEventArgs args) =>
        {
-           // Check for Ctrl+C
            if (args.KeyEvent.Key == Terminal.Gui.Key.a)
            {
                Application.Shutdown();
@@ -67,7 +66,7 @@ public class TerminalGui(BsonProtocol _protocol)
     private bool InImageBounds(int X, int Y)
     {
         if (_protocol.ImageSize is null) return false;
-        return _protocol.ImageSize.height > Y && _protocol.ImageSize.width > X;
+        return _protocol.ImageSize.height >= Y && _protocol.ImageSize.width >= X;
     }
 }
 public enum ScrollDirection {
