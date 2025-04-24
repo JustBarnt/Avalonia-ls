@@ -67,3 +67,7 @@ On supported terminal emulators like kitty, ghostty or wezterm, you can run the 
 ```
 avalonia-preview --file path/to/axaml/file --target terminal
 ```
+
+
+https://github.com/user-attachments/assets/32c9a183-2e48-44e5-8569-ca0da96d2f65
+
