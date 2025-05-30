@@ -201,7 +201,7 @@ public class BsonProtocol(Args _args, PreviewerParams _params)
         }
         await SendAsync(new UpdateXamlMessage
         {
-            AssemblyPath = _params.targetPath,
+            AssemblyPath = _params.assemblypath,
             Xaml = xaml_path,
         });
     }
