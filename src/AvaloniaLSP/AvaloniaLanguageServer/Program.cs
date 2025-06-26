@@ -45,7 +45,7 @@ public class Program
 
     static void InitializeLogging()
     {
-        string logFilePath = Path.Combine("/home/noble", "avalonia.log");
+        string logFilePath = Path.Combine(AppContext.BaseDirectory, "Logs", "AvaloniaLanguageServer.log");
         Log.Logger = new LoggerConfiguration()
             .WriteTo.File(logFilePath)
             .Enrich.FromLogContext()
