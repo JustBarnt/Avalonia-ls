@@ -36,8 +36,8 @@ install-windows:
     mkdir ~/.local/share/avalonia-ls
     cp bin/* ~/.local/share/avalonia-ls -r
 
-    let bin = $"($nu.home-path)/.local/bin"
-    let output_dir = $"($nu.home-path)/.local/share/avalonia-ls"
+    let bin = $"($nu.home-path)\\.local\\bin"
+    let output_dir = $"($nu.home-path)\\.local\\share\\avalonia-ls"
     let link_names = ["xaml-styler.exe", "avalonia-ls.exe", "avalonia-solution-parser.exe", "avalonia-preview.exe"]
     mut exe = ""
     mut link = ""
@@ -46,32 +46,32 @@ install-windows:
     mkdir $bin
 
     ## xaml-styler
-    $exe = $output_dir | path join xaml-styler/xstyler.exe
+    $exe = $output_dir | path join xaml-styler xstyler.exe
     $link = $bin | path join $link_names.0
     print $"Linking ($exe) to: ($link)"
     rm -f $link
-    ln -s $exe $link
+    mklink $link $exe
 
     # avalonia-ls.cmd
-    $exe = $output_dir | path join lsp/AvaloniaLanguageServer.exe
+    $exe = $output_dir | path join lsp AvaloniaLanguageServer.exe
     $link = $bin | path join $link_names.1
     print $"Linking ($exe) to: ($link)"
     rm -f $link
-    ln -s $exe $link
+    mklink $link $exe
 
     # avalonia-solution-parser.cmd
-    $exe = $output_dir | path join solution-parser/SolutionParser.exe
+    $exe = $output_dir | path join solution-parser SolutionParser.exe
     $link = $bin | path join $link_names.2
     print $"Linking ($exe) to: ($link)"
     rm -f $link
-    ln -s $exe $link
+    mklink $link $exe
 
     # avalonia-preview.cmd
-    $exe = $output_dir | path join avalonia-preview/AvaloniaPreview.exe
+    $exe = $output_dir | path join avalonia-preview AvaloniaPreview.exe
     $link = $bin | path join $link_names.3
     print $"Linking ($exe) to: ($link)"
     rm -f $link
-    ln -s $exe $link
+    mklink $link $exe
 
 install:
     @just --choose
