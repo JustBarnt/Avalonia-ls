@@ -11,28 +11,72 @@ build:
     mkdir -p bin/avalonia-preview
     dotnet build src/AvaloniaPreview --output bin/avalonia-preview
 
-
-install:
+install-unix:
+    #!/usr/bin/env nu
     just build
-    mkdir -p ~/.local/share/avalonia-ls
+    mkdir ~/.local/share/avalonia-ls
     cp bin/* ~/.local/share/avalonia-ls -r
+
     echo -e "#!/bin/bash\n exec ~/.local/share/avalonia-ls/xaml-styler/xstyler \"\$@\"" > ~/.local/bin/xaml-styler
     chmod +x ~/.local/bin/xaml-styler
-    
+
     echo -e "#!/bin/bash\n exec ~/.local/share/avalonia-ls/lsp/AvaloniaLanguageServer \"\$@\"" > ~/.local/bin/avalonia-ls
     chmod +x ~/.local/bin/avalonia-ls
-    
+
     echo -e "#!/bin/bash\n exec ~/.local/share/avalonia-ls/solution-parser/SolutionParser \"\$@\"" > ~/.local/bin/avalonia-solution-parser
     chmod +x ~/.local/bin/avalonia-solution-parser
 
     echo -e "#/!bin/bash\n exec ~/.local/share/avalonia-ls/avalonia-preview/AvaloniaPreview \"\$@\"" > ~/.local/bin/avalonia-preview
     chmod +x ~/.local/bin/avalonia-preview
 
-    @echo "INSTALLATION COMPLETE!"
+install-windows:
+    #! nu
 
-    
+    just build
+    mkdir ~/.local/share/avalonia-ls
+    cp bin/* ~/.local/share/avalonia-ls -r
+
+    let bin = $"($nu.home-path)/.local/bin"
+    let output_dir = $"($nu.home-path)/.local/share/avalonia-ls"
+    let link_names = ["xaml-styler.exe", "avalonia-ls.exe", "avalonia-solution-parser.exe", "avalonia-preview.exe"]
+    mut exe = ""
+    mut link = ""
+
+    ## Ensure our $bin dir exists
+    mkdir $bin
+
+    ## xaml-styler
+    $exe = $output_dir | path join xaml-styler/xstyler.exe
+    $link = $bin | path join $link_names.0
+    print $"Linking ($exe) to: ($link)"
+    rm -f $link
+    ln -s $exe $link
+
+    # avalonia-ls.cmd
+    $exe = $output_dir | path join lsp/AvaloniaLanguageServer.exe
+    $link = $bin | path join $link_names.1
+    print $"Linking ($exe) to: ($link)"
+    rm -f $link
+    ln -s $exe $link
+
+    # avalonia-solution-parser.cmd
+    $exe = $output_dir | path join solution-parser/SolutionParser.exe
+    $link = $bin | path join $link_names.2
+    print $"Linking ($exe) to: ($link)"
+    rm -f $link
+    ln -s $exe $link
+
+    # avalonia-preview.cmd
+    $exe = $output_dir | path join avalonia-preview/AvaloniaPreview.exe
+    $link = $bin | path join $link_names.3
+    print $"Linking ($exe) to: ($link)"
+    rm -f $link
+    ln -s $exe $link
+
+install:
+    @just --choose
+
 uninstall:
     rm -rf ~/.local/share/avalonia-ls
     rm ~/.local/bin/xaml-styler ~/.local/bin/avalonia-ls ~/.local/bin/avalonia-solution-parser ~/.local/bin/avalonia-preview
     echo "UNINSTALLATION COMPLETE"
-    
